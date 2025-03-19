@@ -1,0 +1,15 @@
+CREATE TRIGGER product_log
+AFTER UPDATE ON product
+FOR EACH ROW
+BEGIN
+    INSERT INTO product_log (admin_id, product_id, action, timestamp)
+    VALUES (
+        (SELECT id FROM user WHERE role = 'admin' LIMIT 1),  -- ID админа (упрощенный вариант)
+        OLD.id,
+        'Обновлен продукт ' || OLD.id || ': ' ||
+        CASE WHEN OLD.name != NEW.name THEN 'name: ' || OLD.name || ' → ' || NEW.name || '; ' ELSE '' END ||
+        CASE WHEN OLD.price != NEW.price THEN 'price: ' || OLD.price || ' → ' || NEW.price || '; ' ELSE '' END ||
+        CASE WHEN OLD.description != NEW.description THEN 'description изменено; ' ELSE '' END,
+        CURRENT_TIMESTAMP
+    );
+END;

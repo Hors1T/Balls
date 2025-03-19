@@ -1,5 +1,7 @@
 {% extends "layout.html" %}
+
 {% block title %}Корзина{% endblock %}
+
 {% block content %}
 
 <h2>🛒 Корзина</h2>
@@ -12,6 +14,7 @@
                 <th>Цена</th>
                 <th>Количество</th>
                 <th>Итого</th>
+                <th>Действия</th>
             </tr>
         </thead>
         <tbody>
@@ -21,6 +24,11 @@
                     <td>{{ item.product.price }} руб.</td>
                     <td>{{ item.quantity }}</td>
                     <td>{{ item.product.price * item.quantity }} руб.</td>
+                    <td>
+                        <form method="POST" action="{{ url_for('app_routes.remove_from_cart', cart_item_id=item.id) }}">
+                            <button type="submit" class="btn btn-danger">Удалить</button>
+                        </form>
+                    </td>
                 </tr>
             {% endfor %}
         </tbody>

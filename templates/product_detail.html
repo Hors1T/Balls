@@ -10,7 +10,7 @@
         <h2>{{ product.name }}</h2>
         <p>{{ product.description }}</p>
         <h4>{{ product.price }} руб.</h4>
-
+        <p>Наличие: {{ product.stock }}</p>
         {% if current_user.is_authenticated %}
             <form method="POST" action="{{ url_for('app_routes.add_to_cart', product_id=product.id) }}">
                 <label for="quantity">Количество:</label>

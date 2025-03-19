@@ -9,7 +9,7 @@
         <div class="card-body">
             <h5 class="card-title">Заказ №{{ order.id }}</h5>
             <p>Сумма: {{ order.total_price }} руб.</p>
-            <p>Дата: {{ order.date_created }}</p>
+            <p>Дата: {{ order.created_at }}</p>
         </div>
     </div>
 {% else %}

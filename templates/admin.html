@@ -5,11 +5,11 @@
 {% block content %}
 
 <h2>👨‍💻 Панель администратора</h2>
-
+<a href="{{ url_for('app_routes.admin_sql') }}" class="btn btn-warning">🔍 SQL-запросы</a>
 <!-- Кнопка для открытия модального окна -->
 <button class="btn btn-primary" data-toggle="modal" data-target="#addProductModal">Добавить новый продукт</button>
 
-<!-- Модальное окно -->
+<!-- Модальное окно для добавления продукта -->
 <div class="modal fade" id="addProductModal" tabindex="-1" role="dialog" aria-labelledby="addProductModalLabel" aria-hidden="true">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
@@ -48,6 +48,39 @@
     </div>
   </div>
 </div>
+
+<h3>Заказы</h3>
+<table class="table">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Пользователь</th>
+            <th>Статус</th>
+            <th>Дата создания</th>
+            <th>Действия</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for order in orders %}
+        <tr>
+            <td>{{ order.id }}</td>
+            <td>{{ order.user.username }}</td>
+            <td>{{ order.status }}</td>
+            <td>{{ order.created_at }}</td>
+            <td>
+                <a href="{{ url_for('app_routes.view_order', order_id=order.id) }}" class="btn btn-info">Посмотреть</a>
+                <form action="{{ url_for('app_routes.delete_order', order_id=order.id) }}" method="POST" style="display:inline;">
+                    <button type="submit" class="btn btn-danger">Удалить</button>
+                </form>
+            </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="5">Нет заказов для отображения</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
 
 <h3>Продукты</h3>
 <table class="table">

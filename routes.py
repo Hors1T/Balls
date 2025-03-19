@@ -1,10 +1,11 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask import Blueprint, render_template, redirect, url_for, flash, request,current_app
 from flask_login import login_user, logout_user, login_required, current_user
 from db import db
 import os
 from models import User, Product, CartItem, Order, OrderItem, SQLQueryLog
 from config import Config
 from werkzeug.utils import secure_filename
+from sqlalchemy import text
 app_routes = Blueprint("app_routes", __name__)
 
 def allowed_file(filename):
@@ -115,6 +116,25 @@ def cart():
     total_price = sum(item.product.price * item.quantity for item in cart_items)
     return render_template('cart.html', cart_items=cart_items, total_price=total_price)
 
+# =======================
+# 📌 Удаление из корзины
+# =======================
+@app_routes.route('/cart/remove/<int:cart_item_id>', methods=['POST'])
+@login_required
+def remove_from_cart(cart_item_id):
+    try:
+        cart_item = CartItem.query.get(cart_item_id)
+        if cart_item and cart_item.user_id == current_user.id:
+            db.session.delete(cart_item)
+            db.session.commit()
+            flash('Товар удален из корзины', 'success')
+        else:
+            flash('Ошибка: товар не найден или не принадлежит вам', 'danger')
+    except Exception as e:
+        db.session.rollback()
+        flash('Произошла ошибка при удалении товара', 'danger')
+
+    return redirect(url_for('app_routes.cart'))
 
 # =======================
 # 📌 Оформление заказа
@@ -135,9 +155,23 @@ def checkout():
     db.session.flush()  # Получаем ID заказа
 
     for item in cart_items:
-        order_item = OrderItem(order_id=order.id, product_id=item.product_id, quantity=item.quantity,
-                               subtotal=item.product.price * item.quantity)
-        db.session.add(order_item)
+        product = Product.query.get(item.product_id)
+
+        if product and product.stock >= item.quantity:
+            # Уменьшаем количество доступных товаров
+            product.stock -= item.quantity
+
+            order_item = OrderItem(
+                order_id=order.id,
+                product_id=item.product_id,
+                quantity=item.quantity,
+                subtotal=item.product.price * item.quantity
+            )
+            db.session.add(order_item)
+        else:
+            flash(f'Недостаточно товара "{product.name}" в наличии!', 'danger')
+            db.session.rollback()  # Откат, если товара недостаточно
+            return redirect(url_for('app_routes.cart'))
 
     # Очистка корзины
     CartItem.query.filter_by(user_id=current_user.id).delete()
@@ -166,10 +200,10 @@ def admin_panel():
     if current_user.role != "admin":
         flash('Доступ запрещен!', 'danger')
         return redirect(url_for('app_routes.home'))
-
+    orders = Order.query.all()
     products = Product.query.all()
     users = User.query.all()
-    return render_template('admin.html', products=products, users=users)
+    return render_template('admin.html', products=products, users=users, orders=orders)
 
 
 # =======================
@@ -189,7 +223,7 @@ def admin_sql():
         query = request.form['query']
 
         try:
-            results = db.session.execute(query).fetchall()
+            results = db.session.execute(text(query)).fetchall()
             log = SQLQueryLog(query=query)
             db.session.add(log)
             db.session.commit()
@@ -206,7 +240,7 @@ def admin_sql():
 @login_required  # Убедимся, что пользователь авторизован
 def user_detail(user_id):
     user = User.query.get_or_404(user_id)
-    if user.id != current_user.id and current_user.role != 'admin':
+    if current_user.role != 'admin':
         flash('Доступ запрещен!', 'danger')
         return redirect(url_for('app_routes.home'))  # Если не текущий пользователь и не админ, редирект на главную
 
@@ -308,14 +342,24 @@ def delete_product(product_id):
     if current_user.role != "admin":
         flash('Доступ запрещен!', 'danger')
         return redirect(url_for('app_routes.home'))
+
     product = Product.query.get_or_404(product_id)
+
     try:
+        # Удаляем изображение, если оно есть
+        if product.image:
+            image_path = os.path.join(current_app.root_path, Config.UPLOAD_FOLDER, product.image)
+            if os.path.exists(image_path):
+                os.remove(image_path)
+
         db.session.delete(product)
         db.session.commit()
         flash('Продукт успешно удален', 'success')
+
     except Exception as e:
         db.session.rollback()
-        flash('Произошла ошибка при удалении продукта', 'danger')
+        flash(f"Произошла ошибка при удалении продукта: {e}", 'danger')
+
     return redirect(url_for('app_routes.admin_panel'))
 
 # =======================
@@ -326,7 +370,7 @@ def delete_product(product_id):
 def delete_user(user_id):
     user = User.query.get_or_404(user_id)
 
-    if user.id != current_user.id and current_user.role != 'admin':
+    if user.id == current_user.id and current_user.role != 'admin':
         flash('Доступ запрещен!', 'danger')
         return redirect(url_for('app_routes.home'))
 
@@ -337,4 +381,76 @@ def delete_user(user_id):
     except Exception as e:
         db.session.rollback()
         flash('Произошла ошибка при удалении пользователя', 'danger')
+    return redirect(url_for('app_routes.admin_panel'))
+
+
+# =======================
+# 📌 Просмотр заказа
+# =======================
+@app_routes.route('/admin/order/<int:order_id>')
+@login_required
+def view_order(order_id):
+    order = Order.query.get_or_404(order_id)
+    return render_template('order_detail.html', order=order)
+
+
+# =======================
+# 📌 Смена статуса заказа
+# =======================
+@app_routes.route('/admin/update_order_status/<int:order_id>', methods=['POST'])
+@login_required
+def update_order_status(order_id):
+    if current_user.role != 'admin':
+        flash('Доступ запрещен!', 'danger')
+        return redirect(url_for('app_routes.home'))
+
+    order = Order.query.get_or_404(order_id)
+
+    new_status = request.form.get('status')
+    if new_status not in ["new", "processed", "shipped", "completed"]:
+        flash('Некорректный статус заказа!', 'danger')
+        return redirect(url_for('app_routes.admin_panel'))
+
+    try:
+        order.status = new_status
+        db.session.commit()
+        flash('Статус заказа успешно обновлен!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Ошибка при обновлении статуса: {str(e)}', 'danger')
+
+    return redirect(url_for('app_routes.admin_panel'))
+
+
+# =======================
+# 📌 Удаление заказа
+# =======================
+@app_routes.route('/admin/delete_order/<int:order_id>', methods=['POST'])
+@login_required
+def delete_order(order_id):
+    if current_user.role != 'admin':
+        flash('Доступ запрещен!', 'danger')
+        return redirect(url_for('app_routes.home'))
+
+    try:
+        order = Order.query.get_or_404(order_id)  # Если заказ не найден, поднимется ошибка 404
+
+        # Если заказ не завершён (не "completed"), возвращаем товары на склад
+        if order.status != 'completed':
+            for item in order.items:
+                product = Product.query.get(item.product_id)
+                if product:
+                    product.stock += item.quantity  # Возвращаем товары на склад
+
+        # Удаляем все связанные элементы из OrderItem
+        for item in order.items:
+            db.session.delete(item)
+
+        db.session.delete(order)
+        db.session.commit()
+        flash('Заказ успешно удалён', 'success')  # Сообщение об успешном удалении
+    except Exception as e:
+        db.session.rollback()  # Откатываем транзакцию в случае ошибки
+        flash(f'Произошла ошибка при удалении заказа: {str(e)}', 'danger')  # Сообщение об ошибке
+
     return redirect(url_for('app_routes.admin_panel'))

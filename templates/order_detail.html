@@ -1,0 +1,57 @@
+{% extends "layout.html" %}
+
+{% block title %}Детали заказа #{{ order.id }}{% endblock %}
+
+{% block content %}
+<h2>Детали заказа #{{ order.id }}</h2>
+
+<div class="order-details">
+    <p><strong>Пользователь:</strong> {{ order.user.username }}</p>
+    <p><strong>Статус:</strong> {{ order.status }}</p>
+    <p><strong>Общая стоимость:</strong> {{ order.total_price }} руб.</p>
+    <p><strong>Дата создания:</strong> {{ order.created_at }}</p>
+</div>
+
+<h3>Позиции в заказе</h3>
+<table class="table">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Продукт</th>
+            <th>Количество</th>
+            <th>Цена за единицу</th>
+            <th>Подитог</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in order.items %}
+        <tr>
+            <td>{{ item.id }}</td>
+            <td>{{ item.product.name }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>{{ item.product.price }} руб.</td>
+            <td>{{ item.subtotal }} руб.</td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="5">Нет позиций в этом заказе.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Если статус заказа не "отправлен", отображаем кнопку для изменения статуса -->
+{% if order.status != "completed" %}
+    <form action="{{ url_for('app_routes.update_order_status', order_id=order.id) }}" method="POST">
+        <label for="status">Изменить статус:</label>
+        <select name="status" id="status" class="form-control">
+            <option value="new" {% if order.status == 'new' %}selected{% endif %}>Новый</option>
+            <option value="processed" {% if order.status == 'processed' %}selected{% endif %}>Обработан</option>
+            <option value="shipped" {% if order.status == 'shipped' %}selected{% endif %}>Отправлен</option>
+            <option value="completed" {% if order.status == 'completed' %}selected{% endif %}>Завершен</option>
+        </select>
+        <button type="submit" class="btn btn-primary mt-2">Обновить статус</button>
+    </form>
+{% endif %}
+
+{% endblock %}

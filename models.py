@@ -50,7 +50,7 @@ class Order(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     items = db.relationship('OrderItem', backref='order', lazy=True)
-
+    user = db.relationship('User', backref='order', lazy=True)
     def __repr__(self):
         return f'<Order {self.id} - {self.status}>'
 
@@ -67,20 +67,7 @@ class OrderItem(db.Model):
         return f'<OrderItem {self.product_id} - {self.quantity}>'
 
 
-# 5. Модель отзывов (Review)
-class Review(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
-    rating = db.Column(db.Integer, nullable=False)  # Оценка 1-5
-    comment = db.Column(db.Text, nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-    def __repr__(self):
-        return f'<Review {self.user_id} - {self.rating}>'
-
-
-# 6. Модель корзины (CartItem) — временное хранилище покупок пользователя перед оформлением заказа
+# 5. Модель корзины (CartItem) — временное хранилище покупок пользователя перед оформлением заказа
 class CartItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
@@ -91,7 +78,7 @@ class CartItem(db.Model):
         return f'<CartItem {self.user_id} - {self.product_id}>'
 
 
-# 7. Модель управления SQL-запросами (SQLQueryLog) — хранение SQL-запросов администратора
+# 6. Модель управления SQL-запросами (SQLQueryLog) — хранение SQL-запросов администратора
 class SQLQueryLog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     query = db.Column(db.Text, nullable=False)
@@ -101,12 +88,12 @@ class SQLQueryLog(db.Model):
         return f'<SQLQueryLog {self.id}>'
 
 
-# 8. Модель логирования изменений товаров (ProductLog)
+# 7. Модель логирования изменений товаров (ProductLog)
 class ProductLog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     admin_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
-    action = db.Column(db.String(50), nullable=False)  # "created", "updated", "deleted"
+    action = db.Column(db.Text, nullable=False)  # "created", "updated", "deleted"
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
     def __repr__(self):
