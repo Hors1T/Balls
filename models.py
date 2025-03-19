@@ -13,7 +13,6 @@ class User(UserMixin, db.Model):
     role = db.Column(db.String(20), default="user")  # "guest", "user", "admin"
 
     orders = db.relationship('Order', backref='customer', lazy=True)
-    reviews = db.relationship('Review', backref='author', lazy=True)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -35,7 +34,6 @@ class Product(db.Model):
     image = db.Column(db.String(255), nullable=True, default="default.jpg")  # Путь к изображению
 
     order_items = db.relationship('OrderItem', backref='product', lazy=True)
-    reviews = db.relationship('Review', backref='product_review', lazy=True)
 
     def __repr__(self):
         return f'<Product {self.name}>'

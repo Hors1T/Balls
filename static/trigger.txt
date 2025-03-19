@@ -9,7 +9,9 @@ BEGIN
         'Обновлен продукт ' || OLD.id || ': ' ||
         CASE WHEN OLD.name != NEW.name THEN 'name: ' || OLD.name || ' → ' || NEW.name || '; ' ELSE '' END ||
         CASE WHEN OLD.price != NEW.price THEN 'price: ' || OLD.price || ' → ' || NEW.price || '; ' ELSE '' END ||
-        CASE WHEN OLD.description != NEW.description THEN 'description изменено; ' ELSE '' END,
+        CASE WHEN OLD.description != NEW.description THEN 'description изменено; ' ELSE '' END ||
+        CASE WHEN OLD.stock != NEW.stock THEN 'stock: ' || OLD.stock || ' → ' || NEW.stock || '; ' ELSE '' END ||
+        CASE WHEN OLD.image != NEW.image THEN 'image: ' || OLD.image || ' → ' || NEW.image || '; ' ELSE '' END,
         CURRENT_TIMESTAMP
     );
 END;
