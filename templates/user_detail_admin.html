@@ -1,0 +1,23 @@
+{% extends "layout.html" %}
+
+{% block title %}Редактирование пользователя{% endblock %}
+
+{% block content %}
+    <h2>Редактировать данные пользователя</h2>
+
+    <form method="POST">
+        <div class="form-group">
+            <label for="username">Имя пользователя</label>
+            <input type="text" id="username" name="username" value="{{ user.username }}" class="form-control">
+        </div>
+        <div class="form-group">
+            <label for="email">Электронная почта</label>
+            <input type="email" id="email" name="email" value="{{ user.email }}" class="form-control">
+        </div>
+        <div class="form-group">
+            <label for="password">Новый пароль</label>
+            <input type="password" id="password" name="password" class="form-control">
+        </div>
+        <button type="submit" class="btn btn-primary">Сохранить</button>
+    </form>
+{% endblock %}

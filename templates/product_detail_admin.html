@@ -1,0 +1,34 @@
+{% extends "layout.html" %}
+
+{% block title %}Редактирование продукта{% endblock %}
+
+{% block content %}
+    <h2>Редактировать продукт</h2>
+
+    <form method="POST" enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="name">Название продукта</label>
+            <input type="text" id="name" name="name" value="{{ product.name }}" class="form-control">
+        </div>
+        <div class="form-group">
+            <label for="description">Описание</label>
+            <textarea id="description" name="description" class="form-control">{{ product.description }}</textarea>
+        </div>
+        <div class="form-group">
+            <label for="price">Цена</label>
+            <input type="text" id="price" name="price" value="{{ product.price }}" class="form-control">
+        </div>
+        <div class="form-group">
+            <label for="stock">Количество на складе</label>
+            <input type="number" id="stock" name="stock" value="{{ product.stock }}" class="form-control">
+        </div>
+        <div class="form-group">
+            <label for="image">Изображение продукта</label>
+            <input type="file" id="image" name="image" class="form-control">
+            {% if product.image %}
+                <img src="{{ url_for('static', filename='images/' + product.image) }}" alt="Product Image" class="img-thumbnail mt-3" style="max-width: 200px;">
+            {% endif %}
+        </div>
+        <button type="submit" class="btn btn-primary">Сохранить</button>
+    </form>
+{% endblock %}

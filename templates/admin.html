@@ -1,0 +1,114 @@
+{% extends "layout.html" %}
+
+{% block title %}Панель администратора{% endblock %}
+
+{% block content %}
+
+<h2>👨‍💻 Панель администратора</h2>
+
+<!-- Кнопка для открытия модального окна -->
+<button class="btn btn-primary" data-toggle="modal" data-target="#addProductModal">Добавить новый продукт</button>
+
+<!-- Модальное окно -->
+<div class="modal fade" id="addProductModal" tabindex="-1" role="dialog" aria-labelledby="addProductModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addProductModalLabel">Добавить новый продукт</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Закрыть">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <!-- Форма добавления нового продукта -->
+        <form action="{{ url_for('app_routes.add_product') }}" method="POST" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="name">Название</label>
+                <input type="text" id="name" name="name" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="description">Описание</label>
+                <textarea id="description" name="description" class="form-control" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="price">Цена</label>
+                <input type="number" id="price" name="price" class="form-control" required step="0.01">
+            </div>
+            <div class="form-group">
+                <label for="stock">Количество на складе</label>
+                <input type="number" id="stock" name="stock" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="image">Изображение</label>
+                <input type="file" id="image" name="image" class="form-control">
+            </div>
+            <button type="submit" class="btn btn-primary">Добавить продукт</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3>Продукты</h3>
+<table class="table">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Название</th>
+            <th>Цена</th>
+            <th>Действия</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for product in products %}
+        <tr>
+            <td>{{ product.id }}</td>
+            <td>{{ product.name }}</td>
+            <td>{{ product.price }} руб.</td>
+            <td>
+                <a href="{{ url_for('app_routes.product_detail_admin', product_id=product.id) }}" class="btn btn-info">Посмотреть</a>
+                <form action="{{ url_for('app_routes.delete_product', product_id=product.id) }}" method="POST" style="display:inline;">
+                    <button type="submit" class="btn btn-danger">Удалить</button>
+                </form>
+            </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="4">Нет продуктов для отображения</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h3>Пользователи</h3>
+<table class="table">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Имя пользователя</th>
+            <th>Роль</th>
+            <th>Действия</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for user in users %}
+        <tr>
+            <td>{{ user.id }}</td>
+            <td>{{ user.username }}</td>
+            <td>{{ user.role }}</td>
+            <td>
+                <a href="{{ url_for('app_routes.user_detail', user_id=user.id) }}" class="btn btn-info">Посмотреть</a>
+                <form action="{{ url_for('app_routes.delete_user', user_id=user.id) }}" method="POST" style="display:inline;">
+                    <button type="submit" class="btn btn-danger">Удалить</button>
+                </form>
+            </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="4">Нет пользователей для отображения</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

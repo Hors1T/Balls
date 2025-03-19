@@ -1,0 +1,26 @@
+{% extends "layout.html" %}
+{% block title %}{{ product.name }}{% endblock %}
+{% block content %}
+
+<div class="row">
+    <div class="col-md-6">
+        <img src="{{ url_for('static', filename='images/' + product.image) }}" class="img-fluid" alt="{{ product.name }}">
+    </div>
+    <div class="col-md-6">
+        <h2>{{ product.name }}</h2>
+        <p>{{ product.description }}</p>
+        <h4>{{ product.price }} руб.</h4>
+
+        {% if current_user.is_authenticated %}
+            <form method="POST" action="{{ url_for('app_routes.add_to_cart', product_id=product.id) }}">
+                <label for="quantity">Количество:</label>
+                <input type="number" name="quantity" value="1" min="1" class="form-control w-25 mb-2">
+                <button type="submit" class="btn btn-success">Добавить в корзину</button>
+            </form>
+        {% else %}
+            <p class="text-danger">Для покупки войдите в систему.</p>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

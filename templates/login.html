@@ -1,0 +1,12 @@
+{% extends "layout.html" %}
+{% block title %}Вход{% endblock %}
+{% block content %}
+
+<h2>🔑 Вход</h2>
+<form method="POST">
+    <input type="email" name="email" placeholder="Email" required class="form-control mb-2">
+    <input type="password" name="password" placeholder="Пароль" required class="form-control mb-2">
+    <button type="submit" class="btn btn-success">Войти</button>
+</form>
+
+{% endblock %}

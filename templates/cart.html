@@ -1,0 +1,37 @@
+{% extends "layout.html" %}
+{% block title %}Корзина{% endblock %}
+{% block content %}
+
+<h2>🛒 Корзина</h2>
+
+{% if cart_items %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Товар</th>
+                <th>Цена</th>
+                <th>Количество</th>
+                <th>Итого</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in cart_items %}
+                <tr>
+                    <td>{{ item.product.name }}</td>
+                    <td>{{ item.product.price }} руб.</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>{{ item.product.price * item.quantity }} руб.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h3>Общая сумма: {{ total_price }} руб.</h3>
+    <form method="POST" action="{{ url_for('app_routes.checkout') }}">
+        <button type="submit" class="btn btn-primary">Оформить заказ</button>
+    </form>
+{% else %}
+    <p>Ваша корзина пуста.</p>
+{% endif %}
+
+{% endblock %}

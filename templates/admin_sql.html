@@ -1,0 +1,46 @@
+{% extends "layout.html" %}
+
+{% block title %}SQL Запросы администрирования{% endblock %}
+
+{% block content %}
+
+<h2>📊 SQL Запросы</h2>
+
+{% if results %}
+    <h3>Результаты запроса</h3>
+    <table class="table">
+        <thead>
+            <tr>
+                {% for column in results[0]._fields %}
+                <th>{{ column }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in results %}
+            <tr>
+                {% for field in row %}
+                <td>{{ field }}</td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>Нет результатов для отображения.</p>
+{% endif %}
+
+<h3>Выполнить SQL Запрос</h3>
+<form method="post">
+    <div class="form-group">
+        <label for="query">Введите SQL запрос:</label>
+        <textarea id="query" name="query" class="form-control" rows="5">{{ query }}</textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Выполнить</button>
+</form>
+
+{% if results is none %}
+    <p>Пожалуйста, введите SQL запрос для выполнения.</p>
+{% endif %}
+
+{% endblock %}
